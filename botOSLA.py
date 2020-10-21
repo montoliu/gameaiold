@@ -2,15 +2,33 @@ import copy
 
 
 # -------------------------------------------------------------------
+# Unit
+# -------------------------------------------------------------------
+class Unit:
+    def __init__(self, unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos):
+        self.unit_id = unit_id
+        self.pos_x = pos_x
+        self.pos_y = pos_y
+        self.direction = direction
+        self.life = life
+        self.unit_type, = unit_type
+        self.moving = moving
+        self.final_xpos = final_xpos
+        self.final_ypos = final_ypos
+
+
+# -------------------------------------------------------------------
 # TotalBotWarGame
 # -------------------------------------------------------------------
 # This is the Game core to play simulations
 class TotalBotWarGame:
-    def __init__(self, n_units):
+    def __init__(self, n_units, state):
         self.n_units = n_units
+        self.state = state
 
-    def play(self, state, action):
-        new_state = state.clone()
+    def play(self, action):
+        new_state = self.state.clone()
+        # play the action TODO
         return new_state
 
 
@@ -61,11 +79,11 @@ class State:
         new_state.enemy = copy.copy(self.enemy)
         return new_state
 
-    def add_ally(self, unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos):
-        self.ally.append([unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos])
+    def add_ally(self, unit):
+        self.ally.append(unit)
 
-    def add_enemy(self, unit_id, pos_x, pos_y, direction, life, unit_type, moving):
-        self.enemy.append([unit_id, pos_x, pos_y, direction, life, unit_type, moving])
+    def add_enemy(self, unit):
+        self.enemy.append(unit)
 
     # return list with all the possible actions that can be played given the state
     def get_all_possible_actions(self):
@@ -84,10 +102,10 @@ class State:
         ma2_3 = MicroAction(3, 100, 0)
         ma2_4 = MicroAction(4,-100, 0)
         a2 = Action()
-        a2.add(ma1_1)
-        a2.add(ma1_2)
-        a2.add(ma1_3)
-        a2.add(ma1_4)
+        a2.add(ma2_1)
+        a2.add(ma2_2)
+        a2.add(ma2_3)
+        a2.add(ma2_4)
 
         l_actions = [a1, a2]
         return l_actions
@@ -115,8 +133,8 @@ class HeuristicFunction:
 # Given a state and an action, play the action and return the resulting state
 class ForwardModel:
     def play(self, state, action):
-        game = TotalBotWarGame(state.number_units)
-        new_state = game.play(state, action)
+        game = TotalBotWarGame(state.number_units, state)
+        new_state = game.play(action)
         return new_state
 
 
@@ -124,20 +142,22 @@ class ForwardModel:
 # Agent
 # -------------------------------------------------------------------
 # One Steep Look Ahead algorithm
+# For each action that can be played, play the action and get the score
+# The action with the best score is the one selected
 class Agent:
     def act(self, actual_state, forward_model, heuristic_function):
         l_actions = actual_state.get_all_possible_actions()
-        best_action = 0
+        best_action = l_actions[0]
         best_score = 0
 
-        for i in range(len(l_actions)):
-            new_state = forward_model.play(actual_state, l_actions[i])
+        for action in l_actions:
+            new_state = forward_model.play(actual_state, action)
             score = heuristic_function.get_score(new_state)
             if score > best_score:
                 best_score = score
-                best_action = i
+                best_action = action
 
-        action = l_actions[best_action].to_str()
+        action = best_action.to_str()
         return action
 
 
@@ -157,11 +177,13 @@ while True:
     st = State(number_units)
     for i in range(number_units):
         unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos = [int(j) for j in input().split()]
-        st.add_ally(unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos)
+        u = Unit(unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos)
+        st.add_ally(u)
     
     for i in range(number_units):
         unit_id, pos_x, pos_y, direction, life, unit_type, moving = [int(j) for j in input().split()]
-        st.add_enemy(unit_id, pos_x, pos_y, direction, life, unit_type, moving)
+        u = Unit(unit_id, pos_x, pos_y, direction, life, unit_type, moving, -1, -1)
+        st.add_enemy(u)
 
     action = my_agent.act(st, forward_model, heuristic_function)
     print(action)
