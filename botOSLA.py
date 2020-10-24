@@ -1,9 +1,11 @@
 import copy
+import math
 
 
 # -------------------------------------------------------------------
 # Unit
 # -------------------------------------------------------------------
+# A class for managing military units
 class Unit:
     def __init__(self, unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos):
         self.unit_id = unit_id
@@ -16,6 +18,93 @@ class Unit:
         self.final_xpos = final_xpos
         self.final_ypos = final_ypos
 
+    def get_pos_x(self):
+        return self.pos_x
+
+    def get_pos_y(self):
+        return self.pos_y
+
+    def is_moving(self):
+        return self.moving == 1
+
+    def is_alive(self):
+        return self.life > 0
+
+    def get_life(self):
+        return self.life
+
+    def get_defence(self):
+        if self.unit_type == 1:
+            return 10
+        elif self.unit_type == 2:
+            return 20
+        elif self.unit_type == 3:
+            return 12
+        elif self.unit_type == 4:
+            return 5
+
+    def get_attack(self):
+        if self.unit_type == 1:
+            return 20
+        elif self.unit_type == 2:
+            return 15
+        elif self.unit_type == 3:
+            return 12
+        elif self.unit_type == 4:
+            return 10
+
+    def get_speed(self):
+        if self.unit_type == 1:
+            return 15
+        elif self.unit_type == 2:
+            return 10
+        elif self.unit_type == 3:
+            return 40
+        elif self.unit_type == 4:
+            return 15
+
+    def get_charge_resistence(self):
+        if self.unit_type == 1:
+            return 25
+        elif self.unit_type == 2:
+            return 125
+        elif self.unit_type == 3:
+            return 15
+        elif self.unit_type == 4:
+            return 0
+
+    def get_charge_force(self):
+        if self.unit_type == 1:
+            return 5
+        elif self.unit_type == 2:
+            return 10
+        elif self.unit_type == 3:
+            return 100
+        elif self.unit_type == 4:
+            return 5
+
+    def get_arrow_resistence(self):
+        if self.unit_type == 1:
+            return 10
+        elif self.unit_type == 2:
+            return 30
+        elif self.unit_type == 3:
+            return 30
+        elif self.unit_type == 4:
+            return 10
+
+    def get_arrow_distance(self):
+        if self.unit_type == 4:
+            return 450
+        else:
+            return -1
+
+    def get_arrow_damage(self):
+        if self.unit_type == 4:
+            return 20
+        else:
+            return -1
+
 
 # -------------------------------------------------------------------
 # TotalBotWarGame
@@ -26,15 +115,43 @@ class TotalBotWarGame:
         self.n_units = n_units
         self.state = state
 
+    def move(self, new_state, action):
+        for ma in action.l_micro_actions:
+            speed = new_state.ally[ma.unit_id].get_speed()
+            pos_x = new_state.ally[ma.unit_id].get_pos_x()
+            pos_y = new_state.ally[ma.unit_id].get_pos_y()
+            delta_x = ma.delta_x
+            delta_y = ma.delta_y
+
+            dx = min(abs(delta_x), speed)
+            if delta_x > 0:
+                new_pos_x = pos_x + dx
+            else:
+                new_pos_x = pos_x - dx
+
+            dy = min(abs(delta_y), speed)
+            if delta_y > 0:
+                new_pos_y = pos_y + dy
+            else:
+                new_pos_y = pos_y - dy
+
+            new_state.ally[ma.unit_id].set_pos_x(new_pos_x)
+            new_state.ally[ma.unit_id].set_pos_y(new_pos_y)
+
+    def combat(self, new_state):
+        return
+
     def play(self, action):
         new_state = self.state.clone()
-        # play the action TODO
+        self.move(new_state, action)
+        self.combat(new_state)
         return new_state
 
 
 # -------------------------------------------------------------------
 # Micro Action
 # -------------------------------------------------------------------
+# An action to played for a single unit
 class MicroAction:
     def __init__(self, unit_id, delta_x, delta_y):
         self.unit_id = unit_id
@@ -53,19 +170,20 @@ class Action:
     def __init__(self):
         self.l_micro_actions = []
 
-    def add(self, ma):
-        self.l_micro_actions.append(ma)
+    def add(self, micro_action):
+        self.l_micro_actions.append(micro_action)
 
     def to_str(self):
-        str = ""
-        for ma in self.l_micro_actions:
-            str += ma.to_str()
-        return str
+        action = ""
+        for micro_action in self.l_micro_actions:
+            action += micro_action.to_str()
+        return action
 
 
 # -------------------------------------------------------------------
 # State
 # -------------------------------------------------------------------
+# The state of the game
 class State:
     def __init__(self, n):
         self.number_units = n
@@ -73,6 +191,7 @@ class State:
         self.enemy = []
 
     # return a copy of the object
+    # If we change the copy, the original is not modified
     def clone(self):
         new_state = State(self.number_units)
         new_state.ally = copy.copy(self.ally)
@@ -86,11 +205,12 @@ class State:
         self.enemy.append(unit)
 
     # return list with all the possible actions that can be played given the state
+    # TODO: Pensar en otra forma de obtener las acciones
     def get_all_possible_actions(self):
         ma1_1 = MicroAction(1, 0, 100)
         ma1_2 = MicroAction(2, 0, -100)
         ma1_3 = MicroAction(3, 100, 0)
-        ma1_4 = MicroAction(4,-100, 0)
+        ma1_4 = MicroAction(4, -100, 0)
         a1 = Action()
         a1.add(ma1_1)
         a1.add(ma1_2)
@@ -115,14 +235,16 @@ class State:
 # Heuristic function
 # -------------------------------------------------------------------
 # Estimate a score given a state
-# score = Sum ally life point - sum enemy life points 
+# score = Sum ally life point - sum enemy life points
+# The greather, the better
+# TODO: pensar en heurísticas alternativas
 class HeuristicFunction:
     def get_score(self, state):
         ally = 0
         enemy = 0
         for i in range(state.number_units):
-            ally += state.ally[i][4]
-            enemy += state.enemy[i][4]
+            ally += state.ally[i].get_life()
+            enemy += state.enemy[i].get_life()
 
         return ally - enemy
 
