@@ -17,6 +17,23 @@ class Unit:
         self.moving = moving
         self.final_xpos = final_xpos
         self.final_ypos = final_ypos
+        self.size = 150
+
+    def get_distance(self, other_unit):
+        return math.sqrt((self.pos_x-other_unit.pos_x)**2 + (self.pos_y-other_unit.pos_y)**2)
+
+    # Returns true when the two units collide
+    # Two units collide when the distance is less than size/2
+    # The original code is in the Referee.java file at line 1757
+    # TODO: Program the same behaviour than in Referee.java
+    def collide(self, other_unit):
+        return self.get_distance(other_unit) <= self.size / 2
+
+    def get_size(self):
+        return self.size
+
+    def get_direction(self):
+        return self.direction
 
     def get_pos_x(self):
         return self.pos_x
@@ -105,47 +122,14 @@ class Unit:
         else:
             return -1
 
+    def is_archer(self):
+        return self.unit_type == 4
 
-# -------------------------------------------------------------------
-# TotalBotWarGame
-# -------------------------------------------------------------------
-# This is the Game core to play simulations
-class TotalBotWarGame:
-    def __init__(self, n_units, state):
-        self.n_units = n_units
-        self.state = state
-
-    def move(self, new_state, action):
-        for ma in action.l_micro_actions:
-            speed = new_state.ally[ma.unit_id].get_speed()
-            pos_x = new_state.ally[ma.unit_id].get_pos_x()
-            pos_y = new_state.ally[ma.unit_id].get_pos_y()
-            delta_x = ma.delta_x
-            delta_y = ma.delta_y
-
-            dx = min(abs(delta_x), speed)
-            if delta_x > 0:
-                new_pos_x = pos_x + dx
-            else:
-                new_pos_x = pos_x - dx
-
-            dy = min(abs(delta_y), speed)
-            if delta_y > 0:
-                new_pos_y = pos_y + dy
-            else:
-                new_pos_y = pos_y - dy
-
-            new_state.ally[ma.unit_id].set_pos_x(new_pos_x)
-            new_state.ally[ma.unit_id].set_pos_y(new_pos_y)
-
-    def combat(self, new_state):
-        return
-
-    def play(self, action):
-        new_state = self.state.clone()
-        self.move(new_state, action)
-        self.combat(new_state)
-        return new_state
+    def in_archer_range(self, other_unit):
+        if self.get_distance(other_unit) <= self.get_arrow_distance():
+            return True
+        else:
+            return False
 
 
 # -------------------------------------------------------------------
@@ -178,6 +162,142 @@ class Action:
         for micro_action in self.l_micro_actions:
             action += micro_action.to_str()
         return action
+
+
+# -------------------------------------------------------------------
+# TotalBotWarGame
+# -------------------------------------------------------------------
+# This is the Game core to play simulations
+# The original code is in the Referre.java
+class TotalBotWarGame:
+    def __init__(self, n_units, state):
+        self.n_units = n_units
+        self.state = state
+
+    # moving action
+    # Actualize units' positions
+    # The original code is in the Referre.java at line 1593
+    # TODO: An unit stops when colliding with an enemy
+    # TODO: take into account the limits of the battleground
+    # TODO: Actualize units' moving direction
+    # TODO: Actualize units' is moving
+    # TODO: Actualize units' final position
+    def move(self, new_state, action):
+        # for each micro action in action, move it using the unit speed and the direction of the motion
+        for ma in action.l_micro_actions:
+            unit = new_state.ally[ma.unit_id]
+            delta_x = ma.delta_x
+            delta_y = ma.delta_y
+
+            speed = unit.get_speed()
+            pos_x = unit.get_pos_x()
+            pos_y = unit.get_pos_y()
+
+            dx = min(abs(delta_x), speed)
+            if delta_x > 0:
+                new_pos_x = pos_x + dx
+            else:
+                new_pos_x = pos_x - dx
+
+            dy = min(abs(delta_y), speed)
+            if delta_y > 0:
+                new_pos_y = pos_y + dy
+            else:
+                new_pos_y = pos_y - dy
+
+            unit.set_pos_x(new_pos_x)
+            unit.set_pos_y(new_pos_y)
+
+    # Frontal charge u1 to u2 returns 1.0
+    # Other returns 3.0
+    # Directions: NorthWest 0, North 1, ..., west 7
+    # The original code is in the Referee.java file at line 1833
+    # TODO: Implement the same behaviour than in Referee
+    def charge_factor(self, unit1, unit2):
+        d1 = unit1.get_direction()
+        d2 = unit2.get_direction()
+        if (d1 == 1 and d2 in [4, 5, 6]) or \
+                (d1 == 2 and d2 in [5, 6, 7]) or \
+                (d1 == 3 and d2 in [6, 7, 0]) or \
+                (d1 == 4 and d2 in [7, 0, 1]) or \
+                (d1 == 5 and d2 in [0, 1, 2]) or \
+                (d1 == 6 and d2 in [1, 2, 3]) or \
+                (d1 == 6 and d2 in [2, 3, 4]) or \
+                (d1 == 0 and d2 in [3, 4, 5]):
+            return 1
+        else:
+            return 3
+
+    # Figth step between two units.
+    # Actualize the life of units
+    # Step 1: charge
+    # Step 2: normal attack
+    # The original code is in the Referee.java file at line 1781
+    def fight(self, unit_ally, unit_enemy, enemy_already_fight):
+        damage_to_enemy = 0
+        damate_to_ally = 0
+        # charge if ally is moving
+        if unit_ally.is_moving():
+            damage_to_enemy = unit_ally.get_charge_force() - (unit_enemy.get_charge_resistence() / self.charge_factor(unit_ally, unit_enemy))
+
+        # charge if enemy is moving
+        if unit_enemy.is_moving():
+            damate_to_ally = unit_enemy.get_charge_force() - (unit_ally.get_charge_resistence() / self.charge_factor(unit_enemy, unit_ally))
+
+        # normal fight ally to enemy
+        damage_to_enemy += unit_ally.get_attack - unit_enemy.get_defence() / 2
+
+        # normal fight enemy to ally
+        if not enemy_already_fight:
+            damate_to_ally += unit_enemy.get_attack - unit_ally.get_defence() / 2
+
+        if damage_to_enemy < 0:
+            damage_to_enemy = 0
+
+        unit_enemy.life -= damage_to_enemy
+
+        if damate_to_ally < 0:
+            damate_to_ally = 0
+        unit_enemy.life -= damate_to_ally
+
+    # Archer attack
+    # The original code is in the Referee.java file at line 1843
+    def archer_attack(self, unit_ally, unit_enemy):
+        damage_to_enemy = unit_ally.get_arrow_damage - unit_enemy.get_arrow_resistence() / 2
+        if damage_to_enemy < 0:
+            damage_to_enemy = 0
+
+        unit_enemy.life -= damage_to_enemy
+        return True
+
+    # There is a combat between two units
+    # When two units fight, ally unit produce damage to enemy unit and viceversa.
+    # Two ally units can attack to the same enemy unit but the enemy unit produces damage to just one unit
+    # if not collide, check archers attack
+    def combat(self, new_state):
+        enemy_fighting = [False, False, False, False]  # TODO: for any number of units
+        for unit_ally in new_state.ally:
+            i = 0
+            for unit_enemy in new_state.enemy:
+                if unit_ally.collide(unit_enemy):
+                    self.fight(unit_ally, unit_enemy, enemy_fighting[i])
+                    enemy_fighting[i] = True
+                else:
+                    if unit_ally.is_archer() and unit_ally.in_archer_range(unit_enemy):
+                        self.archer_attack(unit_ally, unit_enemy)
+                    if unit_enemy.is_archer() and unit_enemy.in_archer_range(unit_ally):
+                        self.archer_attack(unit_enemy, unit_ally)
+                        enemy_fighting[i] = True
+                i += 1
+
+    # Play a turn
+    # Step 1: Move units
+    # Step 2: combat
+    def play(self, action):
+        new_state = self.state.clone()
+        self.move(new_state, action)
+        self.combat(new_state)
+        return new_state
 
 
 # -------------------------------------------------------------------
@@ -217,10 +337,10 @@ class State:
         a1.add(ma1_3)
         a1.add(ma1_4)
 
-        ma2_1 = MicroAction(1, 0, 100)
-        ma2_2 = MicroAction(2, 0, -100)
-        ma2_3 = MicroAction(3, 100, 0)
-        ma2_4 = MicroAction(4,-100, 0)
+        ma2_1 = MicroAction(1, 0, -100)
+        ma2_2 = MicroAction(2, 0, 100)
+        ma2_3 = MicroAction(3, 100, 50)
+        ma2_4 = MicroAction(4, -100, -50)
         a2 = Action()
         a2.add(ma2_1)
         a2.add(ma2_2)
