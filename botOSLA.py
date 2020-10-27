@@ -1,5 +1,6 @@
 import copy
 import math
+import sys
 
 
 # -------------------------------------------------------------------
@@ -7,27 +8,35 @@ import math
 # -------------------------------------------------------------------
 # A class for managing military units
 class Unit:
-    def __init__(self, unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos):
+    def __init__(self, unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos, player_id):
+        self.player_id = player_id
         self.unit_id = unit_id
         self.pos_x = pos_x
         self.pos_y = pos_y
         self.direction = direction
         self.life = life
-        self.unit_type, = unit_type
+        self.unit_type = unit_type
         self.moving = moving
         self.final_xpos = final_xpos
         self.final_ypos = final_ypos
-        self.size = 150
+        self.size = 150               # TODO: unit size is 150 in leagues 1 and 2, but in league 3 it is 75
 
+    # It returns the distance between two units
     def get_distance(self, other_unit):
         return math.sqrt((self.pos_x-other_unit.pos_x)**2 + (self.pos_y-other_unit.pos_y)**2)
 
-    # Returns true when the two units collide
+    # It returns true when the two units collide
     # Two units collide when the distance is less than size/2
     # The original code is in the Referee.java file at line 1757
     # TODO: Program the same behaviour than in Referee.java
     def collide(self, other_unit):
         return self.get_distance(other_unit) <= self.size / 2
+
+    def is_player_top(self):
+        return self.player_id == 0
+
+    def is_player_bottom(self):
+        return self.player_id == 1
 
     def get_size(self):
         return self.size
@@ -41,6 +50,41 @@ class Unit:
     def get_pos_y(self):
         return self.pos_y
 
+    def set_pos(self, x, y):
+        self.pos_x = x
+        self.pos_y = y
+
+    def set_moving(self, dx, dy):
+        if dx > 0 or dy > 0:
+            self.moving = 1
+        else:
+            self.moving = 0
+
+    # Actualize the direction of the motion
+    def set_direction(self, dx, dy):
+        d = math.degrees(math.atan2(dy, dx))
+        if self.is_player_top():
+            d += 180
+        if d < 0:
+            d = 360 + d
+
+        if d < 22.5 or d >= 337.5:
+            self.direction = 3
+        elif 22.5 <= d < 67.5:
+            self.direction = 2
+        elif 67.5 <= d < 112.5:
+            self.direction = 1
+        elif 112.5 <= d < 157.5:
+            self.direction = 0
+        elif 157.5 <= d < 202.5:
+            self.direction = 7
+        elif 202.5 <= d < 247.5:
+            self.direction = 6
+        elif 247.5 <= d < 292.5:
+            self.direction = 5
+        elif 292.5 <= d < 337.5:
+            self.direction = 4
+
     def is_moving(self):
         return self.moving == 1
 
@@ -50,80 +94,108 @@ class Unit:
     def get_life(self):
         return self.life
 
-    def get_defence(self):
-        if self.unit_type == 1:
-            return 10
+    def get_unit_type_str(self):
+        if self.unit_type == 0:
+            return "Sword"
+        elif self.unit_type == 1:
+            return "Spears"
         elif self.unit_type == 2:
-            return 20
+            return "Kniqht"
         elif self.unit_type == 3:
+            return "Archer"
+
+    def get_direction_str(self):
+        if self.direction == 0:
+            return "NW"
+        elif self.direction == 1:
+            return "NO"
+        elif self.direction == 2:
+            return "NE"
+        elif self.direction == 3:
+            return "EA"
+        elif self.direction == 4:
+            return "SE"
+        elif self.direction == 5:
+            return "SO"
+        elif self.direction == 6:
+            return "SW"
+        elif self.direction == 7:
+            return "WE"
+
+    def get_defence(self):
+        if self.unit_type == 0:
+            return 10
+        elif self.unit_type == 1:
+            return 20
+        elif self.unit_type == 2:
             return 12
-        elif self.unit_type == 4:
+        elif self.unit_type == 3:
             return 5
 
     def get_attack(self):
-        if self.unit_type == 1:
+        if self.unit_type == 0:
             return 20
-        elif self.unit_type == 2:
+        elif self.unit_type == 1:
             return 15
-        elif self.unit_type == 3:
+        elif self.unit_type == 2:
             return 12
-        elif self.unit_type == 4:
+        elif self.unit_type == 3:
             return 10
 
     def get_speed(self):
-        if self.unit_type == 1:
+        if self.unit_type == 0:
             return 15
-        elif self.unit_type == 2:
+        elif self.unit_type == 1:
             return 10
-        elif self.unit_type == 3:
+        elif self.unit_type == 2:
             return 40
-        elif self.unit_type == 4:
+        elif self.unit_type == 3:
             return 15
 
     def get_charge_resistence(self):
-        if self.unit_type == 1:
+        if self.unit_type == 0:
             return 25
-        elif self.unit_type == 2:
+        elif self.unit_type == 1:
             return 125
-        elif self.unit_type == 3:
+        elif self.unit_type == 2:
             return 15
-        elif self.unit_type == 4:
+        elif self.unit_type == 3:
             return 0
 
     def get_charge_force(self):
-        if self.unit_type == 1:
+        if self.unit_type == 0:
             return 5
-        elif self.unit_type == 2:
+        elif self.unit_type == 1:
             return 10
-        elif self.unit_type == 3:
+        elif self.unit_type == 2:
             return 100
-        elif self.unit_type == 4:
+        elif self.unit_type == 3:
             return 5
 
     def get_arrow_resistence(self):
-        if self.unit_type == 1:
+        if self.unit_type == 0:
             return 10
+        elif self.unit_type == 1:
+            return 30
         elif self.unit_type == 2:
             return 30
         elif self.unit_type == 3:
-            return 30
-        elif self.unit_type == 4:
             return 10
 
     def get_arrow_distance(self):
-        if self.unit_type == 4:
+        if self.unit_type == 3:
             return 450
         else:
             return -1
 
     def get_arrow_damage(self):
-        if self.unit_type == 4:
+        if self.unit_type == 3:
             return 20
         else:
             return -1
 
     def is_archer(self):
-        return self.unit_type == 4
+        return self.unit_type == 3
 
     def in_archer_range(self, other_unit):
         if self.get_distance(other_unit) <= self.get_arrow_distance():
@@ -131,18 +203,25 @@ class Unit:
         else:
             return False
 
+    def __str__(self):
+        s = "ID: " + str(self.unit_id) + " " + self.get_unit_type_str() + \
+            " [" + str(self.pos_x) + ", " + str(self.pos_y) + "] Life: " + str(self.life) + \
+            " " + self.get_direction_str() + " Moving: " + str(self.moving)
+        return s
+
 
 # -------------------------------------------------------------------
 # Micro Action
 # -------------------------------------------------------------------
-# An action to played for a single unit
+# An action to be played for a single unit
+# E.g. 1 50 0;
 class MicroAction:
     def __init__(self, unit_id, delta_x, delta_y):
         self.unit_id = unit_id
         self.delta_x = delta_x
         self.delta_y = delta_y
 
-    def to_str(self):
+    def __str__(self):
         return str(self.unit_id) + " " + str(self.delta_x) + " " + str(self.delta_y) + ";"
 
 
@@ -150,6 +229,7 @@ class MicroAction:
 # Action
 # -------------------------------------------------------------------
 # An action is a list of micro actions that will be played in the same turn
+# e.g. 1 45 56; 2 40 100; 3 0 0; 4 100 -100
 class Action:
     def __init__(self):
         self.l_micro_actions = []
@@ -157,11 +237,12 @@ class Action:
     def add(self, micro_action):
         self.l_micro_actions.append(micro_action)
 
-    def to_str(self):
-        action = ""
+    # string version of the action
+    def __str__(self):
+        s = ""
         for micro_action in self.l_micro_actions:
-            action += micro_action.to_str()
-        return action
+            s += str(micro_action) + " "
+        return s
 
 
 # -------------------------------------------------------------------
@@ -174,39 +255,62 @@ class TotalBotWarGame:
         self.n_units = n_units
         self.state = state
 
-    # moving action
+    # Moving action
     # Actualize units' positions
-    # The original code is in the Referre.java at line 1593
+    # The original code is in the Referee.java at line 1593
     # TODO: An unit stops when colliding with an enemy
-    # TODO: take into account the limits of the battleground
-    # TODO: Actualize units' moving direction
-    # TODO: Actualize units' is moving
+    # TODO: take into account the limits of the battlefield
     # TODO: Actualize units' final position
+    # The 0,0 is the top, right corner
     def move(self, new_state, action):
         # for each micro action in action, move it using the unit speed and the direction of the motion
         for ma in action.l_micro_actions:
-            unit = new_state.ally[ma.unit_id]
-            delta_x = ma.delta_x
-            delta_y = ma.delta_y
+            unit = new_state.ally[ma.unit_id-1]  # unit_id is 1 to N, python is 0 to N-1
+            if unit.is_alive():
+                delta_x = ma.delta_x
+                delta_y = ma.delta_y
 
-            speed = unit.get_speed()
-            pos_x = unit.get_pos_x()
-            pos_y = unit.get_pos_y()
+                speed = unit.get_speed()
+                pos_x = unit.get_pos_x()
+                pos_y = unit.get_pos_y()
 
-            dx = min(abs(delta_x), speed)
-            if delta_x > 0:
-                new_pos_x = pos_x + dx
-            else:
-                new_pos_x = pos_x - dx
+                dx = min(abs(delta_x), speed)
+                if unit.is_player_top():
+                    if delta_x > 0:
+                        new_pos_x = pos_x + dx
+                    else:
+                        new_pos_x = pos_x - dx
+                else:
+                    if delta_x > 0:
+                        new_pos_x = pos_x - dx
+                    else:
+                        new_pos_x = pos_x + dx
 
-            dy = min(abs(delta_y), speed)
-            if delta_y > 0:
-                new_pos_y = pos_y + dy
-            else:
-                new_pos_y = pos_y - dy
+                if new_pos_x <= 0:
+                    new_pos_x = 0
+                elif new_pos_x >= 1920:
+                    new_pos_x = 1919
 
-            unit.set_pos_x(new_pos_x)
-            unit.set_pos_y(new_pos_y)
+                dy = min(abs(delta_y), speed)
+                if unit.is_player_top():
+                    if delta_y > 0:
+                        new_pos_y = pos_y + dy
+                    else:
+                        new_pos_y = pos_y - dy
+                else:
+                    if delta_y > 0:
+                        new_pos_y = pos_y - dy
+                    else:
+                        new_pos_y = pos_y + dy
+
+                if new_pos_y <= 0:
+                    new_pos_y = 0
+                elif new_pos_y >= 1080:
+                    new_pos_y = 1079
+
+                unit.set_moving(dx, dy)
+                unit.set_direction(delta_x, delta_y)
+                unit.set_pos(new_pos_x, new_pos_y)
 
     # Frontal charge u1 to u2 returns 1.0
     # Other returns 3.0
@@ -222,7 +326,7 @@ class TotalBotWarGame:
                 (d1 == 4 and d2 in [7, 0, 1]) or \
                 (d1 == 5 and d2 in [0, 1, 2]) or \
                 (d1 == 6 and d2 in [1, 2, 3]) or \
-                (d1 == 6 and d2 in [2, 3, 4]) or \
+                (d1 == 7 and d2 in [2, 3, 4]) or \
                 (d1 == 0 and d2 in [3, 4, 5]):
             return 1
         else:
@@ -233,37 +337,48 @@ class TotalBotWarGame:
     # Step 1: charge
     # Step 2: normal attack
     # The original code is in the Referee.java file at line 1781
+    # TODO: Implement the same behaviour than in Referee
     def fight(self, unit_ally, unit_enemy, enemy_already_fight):
         damage_to_enemy = 0
-        damate_to_ally = 0
+        damage_to_ally = 0
         # charge if ally is moving
         if unit_ally.is_moving():
-            damage_to_enemy = unit_ally.get_charge_force() - (unit_enemy.get_charge_resistence() / self.charge_factor(unit_ally, unit_enemy))
+            damage_to_enemy = unit_ally.get_charge_force() - \
+                              (unit_enemy.get_charge_resistence() / self.charge_factor(unit_ally, unit_enemy))
+
+            if damage_to_enemy < 0:
+                damage_to_enemy = 0
 
         # charge if enemy is moving
         if unit_enemy.is_moving():
-            damate_to_ally = unit_enemy.get_charge_force() - (unit_ally.get_charge_resistence() / self.charge_factor(unit_enemy, unit_ally))
+            damage_to_ally = unit_enemy.get_charge_force() - \
+                             (unit_ally.get_charge_resistence() / self.charge_factor(unit_enemy, unit_ally))
+
+            if damage_to_ally < 0:
+                damage_to_ally = 0
 
         # normal fight ally to enemy
-        damage_to_enemy += unit_ally.get_attack - unit_enemy.get_defence() / 2
+        damage_to_enemy += unit_ally.get_attack() - unit_enemy.get_defence() / 2
 
         # normal fight enemy to ally
         if not enemy_already_fight:
-            damate_to_ally += unit_enemy.get_attack - unit_ally.get_defence() / 2
+            damage_to_ally += unit_enemy.get_attack() - unit_ally.get_defence() / 2
 
         if damage_to_enemy < 0:
             damage_to_enemy = 0
 
         unit_enemy.life -= damage_to_enemy
 
-        if damate_to_ally < 0:
-            damate_to_ally = 0
-        unit_enemy.life -= damate_to_ally
+        if damage_to_ally < 0:
+            damage_to_ally = 0
+
+        unit_enemy.life -= damage_to_ally
 
     # Archer attack
     # The original code is in the Referee.java file at line 1843
+    # TODO: Implement the same behaviour than in Referee
     def archer_attack(self, unit_ally, unit_enemy):
-        damage_to_enemy = unit_ally.get_arrow_damage - unit_enemy.get_arrow_resistence() / 2
+        damage_to_enemy = unit_ally.get_arrow_damage() - unit_enemy.get_arrow_resistence() / 2
         if damage_to_enemy < 0:
             damage_to_enemy = 0
 
@@ -274,21 +389,24 @@ class TotalBotWarGame:
     # When two units fight, ally unit produce damage to enemy unit and viceversa.
     # Two ally units can attack to the same enemy unit but the enemy unit produces damage to just one unit
     # if not collide, check archers attack
+    # TODO: Implement the same behaviour than in Referee
     def combat(self, new_state):
-        enemy_fighting = [False, False, False, False]  # TODO: for any number of units
+        enemy_fighting = [False for i in range(new_state.get_number_units())]
         for unit_ally in new_state.ally:
-            i = 0
-            for unit_enemy in new_state.enemy:
-                if unit_ally.collide(unit_enemy):
-                    self.fight(unit_ally, unit_enemy, enemy_fighting[i])
-                    enemy_fighting[i] = True
-                else:
-                    if unit_ally.is_archer() and unit_ally.in_archer_range(unit_enemy):
-                        self.archer_attack(unit_ally, unit_enemy)
-                    if unit_enemy.is_archer() and unit_enemy.in_archer_range(unit_ally):
-                        self.archer_attack(unit_enemy, unit_ally)
-                        enemy_fighting[i] = True
-                i += 1
+            if unit_ally.is_alive():
+                i = 0
+                for unit_enemy in new_state.enemy:
+                    if unit_enemy.is_alive():
+                        if unit_ally.collide(unit_enemy):                            # collide
+                            self.fight(unit_ally, unit_enemy, enemy_fighting[i])
+                            enemy_fighting[i] = True
+                        else:                                                        # not collide, check archers
+                            if unit_ally.is_archer() and unit_ally.in_archer_range(unit_enemy):
+                                self.archer_attack(unit_ally, unit_enemy)
+                            if unit_enemy.is_archer() and not enemy_fighting[i] and unit_enemy.in_archer_range(unit_ally):
+                                self.archer_attack(unit_enemy, unit_ally)
+                                enemy_fighting[i] = True
+                    i += 1
 
     # Play a turn
     # Step 1: Move units
@@ -307,15 +425,19 @@ class TotalBotWarGame:
 class State:
     def __init__(self, n):
         self.number_units = n
-        self.ally = []
-        self.enemy = []
+        self.ally = []        # list of ally units
+        self.enemy = []       # list of enemy units
 
-    # return a copy of the object
+    # returns a hard copy of the object
     # If we change the copy, the original is not modified
     def clone(self):
         new_state = State(self.number_units)
-        new_state.ally = copy.copy(self.ally)
-        new_state.enemy = copy.copy(self.enemy)
+        for u in self.ally:
+            new_u = copy.copy(u)
+            new_state.ally.append(new_u)
+        for u in self.enemy:
+            new_u = copy.copy(u)
+            new_state.enemy.append(new_u)
         return new_state
 
     def add_ally(self, unit):
@@ -324,30 +446,64 @@ class State:
     def add_enemy(self, unit):
         self.enemy.append(unit)
 
-    # return list with all the possible actions that can be played given the state
-    # TODO: Pensar en otra forma de obtener las acciones
+    def get_number_units(self):
+        return self.number_units
+
+    def get_micro_action(self, n, case):
+        if case == 0:
+            ma = MicroAction(n, 0, 0)
+        elif case == 1:
+            ma = MicroAction(n, 0, 50)
+        elif case == 2:
+            ma = MicroAction(n, 0, -50)
+        elif case == 3:
+            ma = MicroAction(n, 50, 0)
+        else:
+            ma = MicroAction(n, -50, 0)
+        return ma
+
+    # For each unit, move 50 in a direction None, Front, Backwards, RIGHT, LEFT
+    def get_actions_by_direction(self):
+        l_actions = []
+        for u1 in range(5):
+            for u2 in range(5):
+                for u3 in range(5):
+                    for u4 in range(5):
+                        a = Action()
+                        a.add(self.get_micro_action(1, u1))
+                        a.add(self.get_micro_action(2, u2))
+                        a.add(self.get_micro_action(3, u3))
+                        a.add(self.get_micro_action(4, u4))
+                        l_actions.append(a)
+
+        return l_actions
+
+
+        # d = [-50, 0, 50]
+        # for ix1 in range(len(d)):
+        #     for iy1 in range(len(d)):
+        #         for ix2 in range(len(d)):
+        #             for iy2 in range(len(d)):
+        #                 for ix3 in range(len(d)):
+        #                     for iy3 in range(len(d)):
+        #                         for ix4 in range(len(d)):
+        #                             for iy4 in range(len(d)):
+        #                                 ma1 = MicroAction(1, d[ix1], d[iy1])
+        #                                 ma2 = MicroAction(2, d[ix2], d[iy2])
+        #                                 ma3 = MicroAction(3, d[ix3], d[iy3])
+        #                                 ma4 = MicroAction(4, d[ix4], d[iy4])
+        #
+        #                                 a = Action()
+        #                                 a.add(ma1)
+        #                                 a.add(ma2)
+        #                                 a.add(ma3)
+        #                                 a.add(ma4)
+        #                                 l_actions.append(a)
+        # return l_actions
+
+    # It returns the list with all the possible actions that can be played given the state
     def get_all_possible_actions(self):
-        ma1_1 = MicroAction(1, 0, 100)
-        ma1_2 = MicroAction(2, 0, -100)
-        ma1_3 = MicroAction(3, 100, 0)
-        ma1_4 = MicroAction(4, -100, 0)
-        a1 = Action()
-        a1.add(ma1_1)
-        a1.add(ma1_2)
-        a1.add(ma1_3)
-        a1.add(ma1_4)
-
-        ma2_1 = MicroAction(1, 0, -100)
-        ma2_2 = MicroAction(2, 0, 100)
-        ma2_3 = MicroAction(3, 100, 50)
-        ma2_4 = MicroAction(4, -100, -50)
-        a2 = Action()
-        a2.add(ma2_1)
-        a2.add(ma2_2)
-        a2.add(ma2_3)
-        a2.add(ma2_4)
-
-        l_actions = [a1, a2]
+        l_actions = self.get_actions_by_direction()  # 6561 different actions
         return l_actions
 
 
@@ -357,7 +513,7 @@ class State:
 # Estimate a score given a state
 # score = Sum ally life point - sum enemy life points
 # The greather, the better
-# TODO: pensar en heurísticas alternativas
+# TODO: Improve heuristic
 class HeuristicFunction:
     def get_score(self, state):
         ally = 0
@@ -388,19 +544,18 @@ class ForwardModel:
 # The action with the best score is the one selected
 class Agent:
     def act(self, actual_state, forward_model, heuristic_function):
-        l_actions = actual_state.get_all_possible_actions()
+        l_actions = actual_state.get_all_possible_actions()        # get actions that can be played
         best_action = l_actions[0]
         best_score = 0
 
         for action in l_actions:
-            new_state = forward_model.play(actual_state, action)
-            score = heuristic_function.get_score(new_state)
+            new_state = forward_model.play(actual_state, action)   # play the action
+            score = heuristic_function.get_score(new_state)        # get score
             if score > best_score:
                 best_score = score
                 best_action = action
 
-        action = best_action.to_str()
-        return action
+        return best_action
 
 
 # -------------------------------------------------------------------
@@ -417,18 +572,22 @@ number_units = int(input())  # How many troops are on each side.
 # game loop
 while True:
     st = State(number_units)
+    # player 0 (top of the battlefield)
     for i in range(number_units):
+        player_id = 0
         unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos = [int(j) for j in input().split()]
-        u = Unit(unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos)
+        u = Unit(unit_id, pos_x, pos_y, direction, life, unit_type, moving, final_xpos, final_ypos, player_id)
         st.add_ally(u)
-    
+
+    # player 1 (bottom of the battlefield)
     for i in range(number_units):
+        player_id = 1
         unit_id, pos_x, pos_y, direction, life, unit_type, moving = [int(j) for j in input().split()]
-        u = Unit(unit_id, pos_x, pos_y, direction, life, unit_type, moving, -1, -1)
+        u = Unit(unit_id, pos_x, pos_y, direction, life, unit_type, moving, -1, -1, player_id)
         st.add_enemy(u)
 
     action = my_agent.act(st, forward_model, heuristic_function)
-    print(action)
+    print(str(action))
 
 
 # Write an action using print
