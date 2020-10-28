@@ -478,29 +478,6 @@ class State:
 
         return l_actions
 
-
-        # d = [-50, 0, 50]
-        # for ix1 in range(len(d)):
-        #     for iy1 in range(len(d)):
-        #         for ix2 in range(len(d)):
-        #             for iy2 in range(len(d)):
-        #                 for ix3 in range(len(d)):
-        #                     for iy3 in range(len(d)):
-        #                         for ix4 in range(len(d)):
-        #                             for iy4 in range(len(d)):
-        #                                 ma1 = MicroAction(1, d[ix1], d[iy1])
-        #                                 ma2 = MicroAction(2, d[ix2], d[iy2])
-        #                                 ma3 = MicroAction(3, d[ix3], d[iy3])
-        #                                 ma4 = MicroAction(4, d[ix4], d[iy4])
-        #
-        #                                 a = Action()
-        #                                 a.add(ma1)
-        #                                 a.add(ma2)
-        #                                 a.add(ma3)
-        #                                 a.add(ma4)
-        #                                 l_actions.append(a)
-        # return l_actions
-
     # It returns the list with all the possible actions that can be played given the state
     def get_all_possible_actions(self):
         l_actions = self.get_actions_by_direction()  # 6561 different actions
