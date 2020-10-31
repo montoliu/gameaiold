@@ -602,12 +602,14 @@ class Agent:
                 break
 
         # look for unit_enemy
+        found = False
         for unit in actual_state.enemy:
             if unit.unit_id == abs(unit_enemy_id):
                 unit_enemy = unit
+                found = True
                 break
 
-        if not unit_enemy.is_alive():
+        if not found or not unit_enemy.is_alive():
             dx = 0
             dy = 0
         else:
@@ -633,25 +635,25 @@ class Agent:
                 dx, dy = self.get_deltas(unit_id, -4, actual_state)
                 ma = MicroAction(unit_id, dx, dy)
             elif gen == -3:
-                dx, dy = self.get_deltas(unit_id, -4, actual_state)
+                dx, dy = self.get_deltas(unit_id, -3, actual_state)
                 ma = MicroAction(unit_id, dx, dy)
             elif gen == -2:
-                dx, dy = self.get_deltas(unit_id, -4, actual_state)
+                dx, dy = self.get_deltas(unit_id, -2, actual_state)
                 ma = MicroAction(unit_id, dx, dy)
             elif gen == -1:
-                dx, dy = self.get_deltas(unit_id, -4, actual_state)
+                dx, dy = self.get_deltas(unit_id, -1, actual_state)
                 ma = MicroAction(unit_id, dx, dy)
             elif gen == 1:
-                dx, dy = self.get_deltas(unit_id, -4, actual_state)
+                dx, dy = self.get_deltas(unit_id, 1, actual_state)
                 ma = MicroAction(unit_id, dx, dy)
             elif gen == 2:
-                dx, dy = self.get_deltas(unit_id, -4, actual_state)
+                dx, dy = self.get_deltas(unit_id, 2, actual_state)
                 ma = MicroAction(unit_id, dx, dy)
             elif gen == 3:
-                dx, dy = self.get_deltas(unit_id, -4, actual_state)
+                dx, dy = self.get_deltas(unit_id, 3, actual_state)
                 ma = MicroAction(unit_id, dx, dy)
             elif gen == 4:
-                dx, dy = self.get_deltas(unit_id, -4, actual_state)
+                dx, dy = self.get_deltas(unit_id, 4, actual_state)
                 ma = MicroAction(unit_id, dx, dy)
 
             a.add(ma)
@@ -661,7 +663,8 @@ class Agent:
     # returns good good is the action
     def evaluate_individual(self, individual, actual_state, forward_model, heuristic_function):
         action = self.individual2action(individual, actual_state)
-        return heuristic_function.get_score(forward_model.play(actual_state, action))
+        new_state = forward_model.play(actual_state, action)
+        return heuristic_function.get_score(new_state)
 
     # evaluate all the individual. Returns the scores
     def evaluate_population(self, population, actual_state, forward_model, heuristic_function):
@@ -699,7 +702,7 @@ class Agent:
 # main program
 # -------------------------------------------------------------------
 # -------------------------------------------------------------------
-random.seed(0)       # para hacer debug es mejor dejar este valor costante.
+random.seed()       # para hacer debug es mejor dejar este valor costante.
 my_agent = Agent()
 forward_model = ForwardModel()
 heuristic_function = HeuristicFunction()
@@ -726,6 +729,7 @@ while True:
     print(str(st))
 
     action = my_agent.act(st, forward_model, heuristic_function)
+    print(action)
 
 
 # Write an action using print
