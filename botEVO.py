@@ -505,16 +505,19 @@ class ForwardModel:
 class Agent:
     def __init__(self):
         self.number_units = 4
-        self.n_iter = 100
+        self.n_iter = 100           # number of iterations. Please, take into account the time limitation of codingame,
         self.population_size = 10   # how many individuals has the population
         self.pct_selection = 0.5    # pct od individual will survie in the selection step
         self.pct_mutation = 0.1     # pct of gens mutated in the mutation step
 
     # return a random individual
+    # TODO: una opción podría ser probar solo de 0 a 4
+    # TODO: otra opción más inteligente podría ser evitar que el caballo se mueva hacia los lanceros, etc.
+    # TODO: Tener en cuenta las unidades no vivas del enemigo
     def get_random_individual(self):
         individual = [0 for i in range(self.number_units)]
         for i in range(len(individual)):
-            individual[i] = random.randint(-4, self.number_units)  # random number between -4 and 4
+            individual[i] = random.randint(-4, 4)  # random number between -4 and 4
         return individual
 
     # return the initial population (by random)
@@ -547,6 +550,8 @@ class Agent:
 
     # create a new child using to individuals as parents
     # Gens are selected from the parents randomly
+    # TODO: otra opción podría ser crear el nuevo individuo con los dos primeros genes del parent1
+    #       y los dos últimos del parente 2
     def new_child(self, parent1, parent2):
         individual = [0 for i in range(self.number_units)]
 
@@ -560,6 +565,9 @@ class Agent:
         return individual
 
     # Add children using the current population as parents
+    # Parents are randomly selected from population
+    # TODO: otra opción podría ser seleccionar los padres teniendo en cuenta su score.
+    #       Los que tienen más, más probabilidad de ser seleccionados
     def add_children(self, population):
         new_population = []
         for i in range(len(population)):
@@ -577,14 +585,16 @@ class Agent:
 
     # mutate individual
     # A pct of the gens are mutated. New gen is selected randomly
+    # TODO: habría que comprobar que al mutar, el nuevo gen tuviera sentido
     def mutate_individual(self, individual, gens_to_mutate):
         new_individual = copy.copy(individual)
         for i in range(gens_to_mutate):
             idx = random.randint(0, len(individual) - 1)
-            new_individual[idx] = random.randint(-4, self.number_units)
+            new_individual[idx] = random.randint(-4, 4)
         return new_individual
 
     # Mutate a pct of gens of each indvidual
+    # TODO: otra opción podría ser mutar solo los peores individuos y no los mejores y nuevos
     def mutate_population(self, population):
         new_population = []
         gens_to_mutate = math.ceil(self.pct_mutation * self.number_units)
@@ -622,7 +632,7 @@ class Agent:
 
         return dx, dy
 
-    # Transform an indiividual into an action
+    # Transform an indiiidual into an action
     def individual2action(self, individual, actual_state):
         a = Action()
         unit_id = 1
@@ -660,7 +670,7 @@ class Agent:
             unit_id += 1
         return a
 
-    # returns good good is the action
+    # returns how good is the action
     def evaluate_individual(self, individual, actual_state, forward_model, heuristic_function):
         action = self.individual2action(individual, actual_state)
         new_state = forward_model.play(actual_state, action)
@@ -673,6 +683,8 @@ class Agent:
             scores.append(self.evaluate_individual(individual, actual_state, forward_model, heuristic_function))
         return scores
 
+    # get the best action to be played
+    # TODO: se podría reemplazar el for por un while (quede tiempo)
     def act(self, actual_state, forward_model, heuristic_function):
         self.number_units = actual_state.get_number_units()
         population = self.get_initial_population()
@@ -686,7 +698,6 @@ class Agent:
         scores = self.evaluate_population(population, actual_state, forward_model, heuristic_function)
 
         # si no hay de un unico "mejor", seleccionar uno al azar
-        idx = 0
         idxs_best_score = [i for i, j in enumerate(scores) if j == max(scores)]
         if len(idxs_best_score) > 1:
             idx = random.randint(0, len(idxs_best_score) - 1)
