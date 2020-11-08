@@ -4,7 +4,7 @@ import copy
 import time
 import numpy as np
 
-
+# Population is greather than 1
 class RHEAAgent:
     def __init__(self, budget):
         self.n_individuals = 10     # Number of individuals of the population

@@ -66,23 +66,33 @@ def play_game(game_name, agent_name, model):
         step += 1
 
     if win == 1:
-        print("Player gets the goal.")
+        print("Player reached the goal.")
     elif win == -1:
-        print("Player falls in a hole.")
+        print("Player fell into a hole.")
     else:
-        print("Player has not finished.")
+        print("Player didn't reach the goal in the given steps.")
 
 
+# Main program
+# 1. Select the game to play_game
+# 2. Select the agent to be used to obtain the best action to play
+# 3. Lear how to play
+# 4. Play the game using the learned model
 if __name__ == "__main__":
     max_iter_learning = 10000
     do_learning = True
 
-    #game_name = "MAZE"
-    game_name = "RACE"
+    # 1. Select game
+    game_name = "MAZE"
+    #game_name = "RACE"
 
-    #agent_name = "SimpleLearning"
-    agent_name = "QLearning"
+    # 1. Select agent
+    agent_name = "SimpleLearning"
+    #agent_name = "QLearning"
 
+    # 3. Lear how to play
     model = learn_game(game_name, agent_name, max_iter_learning)
     print("")
+
+    # 4. Play the game using the learned model
     play_game(game_name, agent_name, model)

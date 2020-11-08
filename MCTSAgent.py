@@ -3,6 +3,7 @@ import math
 import time
 
 
+# A MCTS Node
 class Node:
     def __init__(self, parent, state, action, id):
         self.id = id  # it helps when debugging
@@ -34,6 +35,7 @@ class Node:
         return best_child
 
 
+# MCTS agent
 class MCTSAgent:
     def __init__(self, budget):
         self.budget = budget / 1000  # budget is in ms, self.budget in seconds

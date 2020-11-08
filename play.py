@@ -9,6 +9,7 @@ import HCAgent
 import MCTSAgent
 
 
+# Play a game using an agent
 def play_game(game_name, agent_name, max_steps, budget):
     step = 1
     win = 0
@@ -52,27 +53,32 @@ def play_game(game_name, agent_name, max_steps, budget):
         step += 1
 
     if win == 1:
-        print("The player gets the goal.")
+        print("Player reached the goal.")
     elif win == -1:
-        print("The player fall in a hole.")
+        print("Player fell into a hole.")
     else:
-        print("The player not reach the goal in the given steps.")
+        print("Player didn't reach the goal in the given steps.")
 
 
+# Main program
+# 1. Select the game to play_game
+# 2. Select the agent to be used to obtain the best action to play
+# 3. Play the game
 if __name__ == "__main__":
     max_steps = 100
-    budget = 1000       # 1000 ms -> 1 second
+    budget = 1000    # 1000 ms -> 1 second
 
-    # Select game
-    #game_name = "MAZE"
-    game_name = "RACE"
+    # 1. Select game
+    game_name = "MAZE"
+    #game_name = "RACE"
 
-    # Select agent algorithm
-    #agent_name = "Random"
+    # 2. Select agent algorithm
+    agent_name = "Random"
     #agent_name = "OneStep"
     #agent_name = "HC"
     #agent_name = "RHEA"
-    agent_name = "MCTS"
+    #agent_name = "MCTS"
 
+    # 3. play the game
     play_game(game_name, agent_name, max_steps, budget)
 
