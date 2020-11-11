@@ -12,6 +12,7 @@
 # 17 18 19 20
 # --------------------------------
 import math
+import copy
 
 
 class MazeState:
@@ -19,13 +20,22 @@ class MazeState:
         self.state = 1
         self.GOALS = [20]
         self.HOLES = [7, 9, 12, 18]
+        self.COINS = [13, 14]
         self.TERMINAL = self.HOLES + self.GOALS
-        self.SUCCESS = 1
-        self.FAIL = -1
+        self.SUCCESS = 100
+        self.FAIL = -100
+        self.points = 0
 
     def clone(self):
         st = MazeState()
         st.state = self.state
+        st.GOALS = copy.copy(self.GOALS)
+        st.HOLES = copy.copy(self.HOLES)
+        st.COINS = copy.copy(self.COINS)
+        st.TERMINAL = copy.copy(self.TERMINAL)
+        st.SUCCESS = self.SUCCESS
+        st.FAIL = self.FAIL
+        st.points = self.points
         return st
 
     def do_action(self, action):
@@ -38,6 +48,10 @@ class MazeState:
         elif action == 4 and self.state not in [1, 5, 9, 13, 17]:
             self.state -= 1
 
+        if self.state in self.COINS:
+            self.points += 1
+            self.COINS.remove(self.state)
+
     def is_terminal(self):
         return self.state in self.TERMINAL
 
@@ -46,26 +60,20 @@ class MazeState:
             return []
         return [1, 2, 3, 4]
 
-    # For each non-terminal state return a reward relared to the distance to the goal
-    # def get_score(self):
-    #     if self.state in self.GOALS:
-    #         return self.SUCCESS
-    #     elif self.state in self.HOLES:
-    #         return self.FAIL
-    #     else:
-    #         row = math.floor((self.state - 1) / 4) + 1
-    #         col = ((self.state - 1) % 4) + 1
-    #         distance = math.sqrt((5 - row) ** 2 + (4 - col) ** 2)
-    #         return (5 - distance)/5
-
     # Goal SUCCESS, Holes FAIL, non-terminal 0
     def get_score(self):
         if self.state in self.GOALS:
-            return self.SUCCESS
+            return self.SUCCESS + self.points
         elif self.state in self.HOLES:
-            return self.FAIL
+            return self.FAIL + self.points
         else:
-            return 0
+            return self.points
+
+    def is_winner(self):
+        return self.state in self.GOALS
+
+    def is_loser(self):
+        return self.state in self.HOLES
 
     def __repr__(self):
         return str(self.state)

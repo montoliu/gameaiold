@@ -27,12 +27,16 @@ class Node:
             if child.n == 0:  # not yet visited
                 ucb_child = self.BIG_NUMBER + epsilon
             else:
-                ucb_child = child.score / child.n + self.C * math.sqrt(math.log(self.n) / child.n) + epsilon
+                ucb_child = child.score + self.C * math.sqrt(math.log(self.n) / child.n) + epsilon
             if ucb_child >= best_ucb:
                 best_child = child
                 best_ucb = ucb_child
 
         return best_child
+
+    def __str__(self):
+        s = "ID: " + str(self.state) + " Score: " + str(self.score) + " N: " + str(self.n)
+        return s
 
 
 # MCTS agent
@@ -60,7 +64,7 @@ class MCTSAgent:
 
             if child.n == 0 or child.state.is_terminal():  # not yet visited (or terminal) -> rollout
                 score = self.rollout(child)
-                child.score += score
+                child.score = (child.score*child.n + score) / (child.n+1)
                 child.n += 1
                 self.backpropagation(child.parent, score)
                 actual_node = root_node
@@ -81,9 +85,8 @@ class MCTSAgent:
         best_child = None
         best_score = -math.inf
         for child in root_node.l_children:
-            score = child.score / child.n
-            if score >= best_score:
-                best_score = score
+            if child.score >= best_score:
+                best_score = child.score
                 best_child = child
         return best_child
 
@@ -92,8 +95,8 @@ class MCTSAgent:
     # --------------------------------
     def backpropagation(self, node, score):
         while node is not None:
+            node.score = (node.score*node.n + score) / (node.n + 1)
             node.n += 1
-            node.score += score
             node = node.parent
 
     # --------------------------------
@@ -117,7 +120,7 @@ class MCTSAgent:
         one_child = random.choice(node.l_children)
         score = self.rollout(one_child)
 
-        one_child.score += score
+        one_child.score = (one_child.score*one_child.n + score) / (one_child.n + 1)
         one_child.n += 1
 
         self.backpropagation(node, one_child.score)

@@ -1,3 +1,5 @@
+import random
+
 # Games
 import MazeState
 import RaceState
@@ -12,7 +14,6 @@ import MCTSAgent
 # Play a game using an agent
 def play_game(game_name, agent_name, max_steps, budget):
     step = 1
-    win = 0
 
     state = None
     if game_name == "MAZE":
@@ -44,19 +45,15 @@ def play_game(game_name, agent_name, max_steps, budget):
 
         print("Step:" + str(step) + " Action:" + str(action) + " State:" + str(state) + " Score:" + str(score))
 
-        if score == 1:
-            win = 1
+        if state.is_winner():
+            print("Player reached the goal.")
             break
-        elif score == -1:
-            win = -1
+        elif state.is_loser():
+            print("Player fell into a hole.")
             break
         step += 1
 
-    if win == 1:
-        print("Player reached the goal.")
-    elif win == -1:
-        print("Player fell into a hole.")
-    else:
+    if step >= max_steps:
         print("Player didn't reach the goal in the given steps.")
 
 
@@ -65,19 +62,21 @@ def play_game(game_name, agent_name, max_steps, budget):
 # 2. Select the agent to be used to obtain the best action to play
 # 3. Play the game
 if __name__ == "__main__":
+    random.seed()
     max_steps = 100
     budget = 1000    # 1000 ms -> 1 second
 
     # 1. Select game
     game_name = "MAZE"
     #game_name = "RACE"
+    #game_name = "RaceStateVictor"
 
     # 2. Select agent algorithm
-    agent_name = "Random"
+    #agent_name = "Random"
     #agent_name = "OneStep"
     #agent_name = "HC"
     #agent_name = "RHEA"
-    #agent_name = "MCTS"
+    agent_name = "MCTS"
 
     # 3. play the game
     play_game(game_name, agent_name, max_steps, budget)
