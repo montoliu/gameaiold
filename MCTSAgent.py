@@ -59,7 +59,9 @@ class MCTSAgent:
 
         # main loop
         actual_node = root_node
-        while time.time()-t0 < self.budget:
+        #while time.time()-t0 < self.budget:
+        i=0
+        while i < 1000:
             child = actual_node.get_best_child()  # Get the next child to be visited
 
             if child.n == 0 or child.state.is_terminal():  # not yet visited (or terminal) -> rollout
@@ -74,6 +76,7 @@ class MCTSAgent:
                 actual_node = root_node
             else:                                           # if it has children, continue traversing the tree
                 actual_node = child
+            i += 1
 
         recommend_child = self.recommend_child(root_node)
         return recommend_child.action

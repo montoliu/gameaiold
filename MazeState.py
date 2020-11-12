@@ -20,22 +20,17 @@ class MazeState:
         self.state = 1
         self.GOALS = [20]
         self.HOLES = [7, 9, 12, 18]
-        self.COINS = [13, 14]
+        self.COINS = [11, 13]
         self.TERMINAL = self.HOLES + self.GOALS
-        self.SUCCESS = 100
-        self.FAIL = -100
+        self.SUCCESS = 1
+        self.FAIL = -1
         self.points = 0
 
     def clone(self):
         st = MazeState()
         st.state = self.state
-        st.GOALS = copy.copy(self.GOALS)
-        st.HOLES = copy.copy(self.HOLES)
-        st.COINS = copy.copy(self.COINS)
-        st.TERMINAL = copy.copy(self.TERMINAL)
-        st.SUCCESS = self.SUCCESS
-        st.FAIL = self.FAIL
         st.points = self.points
+        st.COINS = copy.copy(self.COINS)
         return st
 
     def do_action(self, action):
@@ -49,7 +44,7 @@ class MazeState:
             self.state -= 1
 
         if self.state in self.COINS:
-            self.points += 1
+            self.points += 5
             self.COINS.remove(self.state)
 
     def is_terminal(self):
