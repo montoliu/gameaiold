@@ -15,18 +15,23 @@ import math
 import copy
 
 
-class MazeState:
+class MazeCoinsState:
     def __init__(self):
         self.state = 1
         self.GOALS = [20]
         self.HOLES = [7, 9, 12, 18]
+        self.COINS = [11, 13]
         self.TERMINAL = self.HOLES + self.GOALS
         self.SUCCESS = 1
         self.FAIL = -1
+        self.COIN_POINTS = 1
+        self.points = 0
 
     def clone(self):
-        st = MazeState()
+        st = MazeCoinsState()
         st.state = self.state
+        st.points = self.points
+        st.COINS = copy.copy(self.COINS)
         return st
 
     def do_action(self, action):
@@ -39,22 +44,44 @@ class MazeState:
         elif action == 4 and self.state not in [1, 5, 9, 13, 17]:
             self.state -= 1
 
+        if self.state in self.COINS:
+            self.points += self.COIN_POINTS
+            self.COINS.remove(self.state)
+
     def is_terminal(self):
         return self.state in self.TERMINAL
 
     def get_actions(self):
         if self.is_terminal():
             return []
+
+        if self.state == 1:
+            return [2, 3]
+        elif self.state == 4:
+            return [3, 4]
+        elif self.state == 17:
+            return [1, 2]
+        elif self.state == 20:
+            return [1, 4]
+        elif self.state in [2, 3]:
+            return [2, 3, 4]
+        elif self.state in [18, 19]:
+            return [1, 2, 4]
+        elif self.state in [5, 9, 13]:
+            return [1, 2, 3]
+        elif self.state in [8, 12, 16]:
+            return [1, 3, 4]
+
         return [1, 2, 3, 4]
 
     # Goal SUCCESS, Holes FAIL, non-terminal 0
     def get_score(self):
         if self.state in self.GOALS:
-            return self.SUCCESS
+            return self.SUCCESS + self.points
         elif self.state in self.HOLES:
-            return self.FAIL
+            return self.FAIL + self.points
         else:
-            return 0
+            return self.points
 
     def is_winner(self):
         return self.state in self.GOALS

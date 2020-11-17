@@ -85,3 +85,9 @@ class RaceState:
 
     def init(self):
         self.state = [self.NR-1, 2]
+
+    def is_winner(self):
+        return self.state in self.GOALS
+
+    def is_loser(self):
+        return self.state in self.HOLES

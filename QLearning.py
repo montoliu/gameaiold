@@ -6,9 +6,9 @@ import random
 class QLearning:
     def __init__(self):
         self.qtable = None
-        self.alfa = 0.6
+        self.alfa = 0.5
         self.gamma = 0.9
-        self.epsilon = 0.4
+        self.epsilon = 0.5
 
     # Set the qtable with a previous calculated one
     def set_model(self, model):
@@ -35,7 +35,6 @@ class QLearning:
     def play(self, state):
         step = 1
         max_steps = 100
-        win = 0
         while not state.is_terminal() and step < max_steps:
 
             # best action to play
@@ -46,20 +45,13 @@ class QLearning:
                 action = np.argmax(self.qtable[state_ID-1, :]) + 1
 
             # update qtable
-            old_state = state.get_state_ID() - 1
+            old_state = state.get_state_ID()
 
             state.do_action(action)    # perform the action
             score = state.get_score()  # get the score given the new state
 
-            new_state = state.get_state_ID() - 1
+            new_state = state.get_state_ID()
 
-            self.qtable[old_state, action-1] = (1 - self.alfa)*self.qtable[old_state, action-1] + \
-                                               self.alfa*(score + self.gamma*np.max(self.qtable[new_state, :]))
-
-            if score == 1:
-                win = 1
-                break
-            elif score == -1:
-                win = -1
-                break
+            self.qtable[old_state-1, action-1] = (1 - self.alfa)*self.qtable[old_state-1, action-1] + \
+                                                  self.alfa*(score + self.gamma*np.max(self.qtable[new_state-1, :]))
             step += 1

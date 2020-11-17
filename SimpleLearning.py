@@ -41,15 +41,13 @@ class SimpleLearning:
         while not state.is_terminal() and step < max_steps:
             action = random.choice(state.get_actions())
             l_states_actions.append([state.get_state_ID(), action])
-            state.do_action(action)  # perform the action
-            score = state.get_score()  # get the score given the new state
-            if score == 1:
-                win = 1
-                break
-            elif score == -1:
-                win = -1
-                break
+            state.do_action(action)
             step += 1
+
+            if state.is_winner():
+                win = 1
+            elif state.is_loser():
+                win = -1
 
         return l_states_actions, win
 
