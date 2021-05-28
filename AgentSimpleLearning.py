@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 
-class SimpleLearning:
+class AgentSimpleLearning:
     def __init__(self):
         self.qtable = None
 

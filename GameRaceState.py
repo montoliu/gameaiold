@@ -8,7 +8,7 @@
 import copy
 
 
-class RaceState:
+class GameRaceState:
     def __init__(self):
         self.NC = 5
         self.NR = 20
@@ -30,7 +30,7 @@ class RaceState:
         return h1 + h2 + h3 + h4 + h5 + h6
 
     def clone(self):
-        st = RaceState()
+        st = GameRaceState()
         st.state = copy.copy(self.state)
         return st
 

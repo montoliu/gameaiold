@@ -1,7 +1,7 @@
 import random
 
 
-class OneStepAgent:
+class AgentOneStep:
     def __init__(self, budget):
         self.budget = budget
         self.count = 0

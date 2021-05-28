@@ -1,9 +1,8 @@
 import numpy as np
 import random
 
-# TODO
 
-class QLearning:
+class AgentQLearning:
     def __init__(self):
         self.qtable = None
         self.alfa = 0.5
@@ -22,10 +21,10 @@ class QLearning:
         return action + 1
 
     # Learn the qtable
-    def learn(self, state, max_iters):
+    def learn(self, state, n_episodes):
         self.qtable = np.zeros((state.get_number_states(), state.get_number_actions()))
 
-        for iter in range(max_iters):
+        for iter in range(n_episodes):
             # play the game
             state.init()
             self.play(state)

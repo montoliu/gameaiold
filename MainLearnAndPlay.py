@@ -1,8 +1,8 @@
-import MazeState
-import MazeCoinsState
-import RaceState
-import SimpleLearning
-import QLearning
+import GameMazeState
+import GameMazeCoinsState
+import GameRaceState
+import AgentSimpleLearning
+import AgentQLearning
 import random
 
 
@@ -10,16 +10,16 @@ def learn_game(game_name, agent_name, max_iter_learning):
     state = None
     agent = None
     if game_name == "MAZE":
-        state = MazeState.MazeState()
+        state = GameMazeState.GameMazeState()
     elif game_name == "MAZECOINS":
-        state = MazeCoinsState.MazeCoinsState()
+        state = GameMazeCoinsState.GameMazeCoinsState()
     elif game_name == "RACE":
-        state = RaceState.RaceState()
+        state = GameRaceState.GameRaceState()
 
     if agent_name == "SimpleLearning":
-        agent = SimpleLearning.SimpleLearning()
+        agent = AgentSimpleLearning.AgentSimpleLearning()
     elif agent_name == "QLearning":
-        agent = QLearning.QLearning()
+        agent = AgentQLearning.AgentQLearning()
 
     print("------------------------------------")
     print("GAME: " + game_name)
@@ -35,16 +35,16 @@ def play_game(game_name, agent_name, model):
     state = None
     agent = None
     if game_name == "MAZE":
-        state = MazeState.MazeState()
+        state = GameMazeState.GameMazeState()
     elif game_name == "MAZECOINS":
-        state = MazeCoinsState.MazeCoinsState()
+        state = GameMazeCoinsState.GameMazeCoinsState()
     elif game_name == "RACE":
-        state = RaceState.RaceState()
+        state = GameRaceState.GameRaceState()
 
     if agent_name == "SimpleLearning":
-        agent = SimpleLearning.SimpleLearning()
+        agent = AgentSimpleLearning.AgentSimpleLearning()
     elif agent_name == "QLearning":
-        agent = QLearning.QLearning()
+        agent = AgentQLearning.AgentQLearning()
 
     print("------------------------------------")
     print("GAME: " + game_name)
@@ -77,22 +77,20 @@ def play_game(game_name, agent_name, model):
 # 3. Lear how to play
 # 4. Play the game using the learned model
 if __name__ == "__main__":
-    random.seed(1)
+    random.seed()
 
-    max_iter_learning = 10000
-    do_learning = True
+    n_episodes = 10000
 
     # 1. Select game
-    #game_name = "MAZE"
+    game_name = "MAZE"
     #game_name = "RACE"
-    game_name = "MAZECOINS"
 
     # 1. Select agent
     #agent_name = "SimpleLearning"
     agent_name = "QLearning"
 
     # 3. Lear how to play
-    model = learn_game(game_name, agent_name, max_iter_learning)
+    model = learn_game(game_name, agent_name, n_episodes)
     print("")
     print(model)
 

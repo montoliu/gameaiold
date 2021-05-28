@@ -40,7 +40,7 @@ class Node:
 
 
 # MCTS agent
-class MCTSAgent:
+class AgentMCTS:
     def __init__(self, budget):
         self.budget = budget / 1000  # budget is in ms, self.budget in seconds
         self.count = 0

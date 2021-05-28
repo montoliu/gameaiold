@@ -15,7 +15,7 @@ import math
 import copy
 
 
-class MazeState:
+class GameMazeState:
     def __init__(self):
         self.state = 1
         self.GOALS = [20]
@@ -25,7 +25,7 @@ class MazeState:
         self.FAIL = -1
 
     def clone(self):
-        st = MazeState()
+        st = GameMazeState()
         st.state = self.state
         return st
 

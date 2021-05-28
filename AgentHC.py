@@ -3,9 +3,10 @@ import copy
 import numpy as np
 import time
 
+
 # Population is always 1
 # At each step, the individual is tested against a mutated version of itself. The best of the two is the new individual
-class HCAgent:
+class AgentHC:
     def __init__(self, budget):
         self.n_gens = 5            # Number of gens of the individual
         self.BUDGET = budget/1000  # budget parameter is in ms, self.budget in seconds

@@ -1,14 +1,14 @@
 import random
 
 # Games
-import MazeState
-import RaceState
+import GameMazeState
+import GameRaceState
 # Agents
-import RandomAgent
-import OneStepAgent
-import RHEAAgent
-import HCAgent
-import MCTSAgent
+import AgentRandom
+import AgentOneStep
+import AgentRHEA
+import AgentHC
+import AgentMCTS
 
 
 # Play a game using an agent
@@ -17,21 +17,21 @@ def play_game(game_name, agent_name, max_steps, budget):
 
     state = None
     if game_name == "MAZE":
-        state = MazeState.MazeState()
+        state = GameMazeState.GameMazeState()
     elif game_name == "RACE":
-        state = RaceState.RaceState()
+        state = GameRaceState.GameRaceState()
 
     agent = None
     if agent_name == "Random":
-        agent = RandomAgent.RandomAgent()
+        agent = AgentRandom.AgentRandom()
     elif agent_name == "OneStep":
-        agent = OneStepAgent.OneStepAgent(budget)
+        agent = AgentOneStep.AgentOneStep(budget)
     elif agent_name == "RHEA":
-        agent = RHEAAgent.RHEAAgent(budget)
+        agent = AgentRHEA.AgentRHEA(budget)
     elif agent_name == "HC":
-        agent = HCAgent.HCAgent(budget)
+        agent = AgentHC.AgentHC(budget)
     elif agent_name == "MCTS":
-        agent = MCTSAgent.MCTSAgent(budget)
+        agent = AgentMCTS.AgentMCTS(budget)
 
     print("------------------------------------")
     print("GAME: " + game_name)
@@ -64,19 +64,18 @@ def play_game(game_name, agent_name, max_steps, budget):
 if __name__ == "__main__":
     random.seed()
     max_steps = 100
-    budget = 1000    # 1000 ms -> 1 second
+    budget =500    # 1000 ms -> 1 second
 
     # 1. Select game
-    game_name = "MAZE"
-    #game_name = "RACE"
-    #game_name = "RaceStateVictor"
+    #game_name = "MAZE"
+    game_name = "RACE"
 
     # 2. Select agent algorithm
     #agent_name = "Random"
     #agent_name = "OneStep"
     #agent_name = "HC"
-    #agent_name = "RHEA"
-    agent_name = "MCTS"
+    agent_name = "RHEA"
+    #agent_name = "MCTS"
 
     # 3. play the game
     play_game(game_name, agent_name, max_steps, budget)
